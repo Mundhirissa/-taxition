@@ -18,14 +18,19 @@ public class Application {
     private String doc2;
     private String image;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "UserId")
     private User user;
 
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "StatusId")
     private  Status status;
+
+
+
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment>comments;
 
 
 

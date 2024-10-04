@@ -15,12 +15,12 @@ public class Comment {
     private Date commentDate;
     private String text;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "UserId")
     private User user;
 
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "ApplicationId")
     private Application application;
 }

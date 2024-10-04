@@ -270,7 +270,33 @@ public class ApplicationController {
 
 
 
-//
+
+    @PutMapping("/{ApplicationId}/approve")
+    public String approveApplication(@PathVariable Long ApplicationId) {
+        // Fetch the application
+        Optional<Application> applicationOpt = applicationRepo.findById(ApplicationId);
+        if (applicationOpt.isEmpty()) {
+            return "Application not found!";
+        }
+
+        Application application = applicationOpt.get();
+
+        // Fetch the "Done" status
+        Status doneStatus = statusRepo.findByStatusName("Done");
+        if (doneStatus == null) {
+            return "'Done' status not found!";
+        }
+
+        // Update the application's status
+        application.setStatus(doneStatus);
+        applicationRepo.save(application);
+
+        return "Application approved successfully!";
+    }
+
+
+
+
 //    @PutMapping("/update/{applicationId}/{fileType}")
 //    public ResponseEntity<Application> updateFile(
 //            @PathVariable Long applicationId,

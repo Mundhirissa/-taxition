@@ -3,6 +3,8 @@ package com.example.TAX.EXEMPTION.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Entity
 public class User {
@@ -29,6 +31,11 @@ public class User {
     private String phoneNumber;
     private String employeeId;
 
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Application>applications;
+
+
    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "roleId")
     private  Role role;
@@ -42,6 +49,10 @@ public class User {
     @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "ApplicationId")
     private Application application;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment>comments;
+
 
     public User() {
     }
