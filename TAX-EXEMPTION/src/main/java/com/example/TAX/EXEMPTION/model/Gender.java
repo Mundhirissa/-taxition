@@ -1,10 +1,9 @@
 package com.example.TAX.EXEMPTION.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 @Entity
@@ -13,4 +12,8 @@ public class Gender {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long genderId;
     public  String genderType;
+
+    // Bidirectional relationship to User
+    @OneToMany(mappedBy = "gender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<User> users;
 }

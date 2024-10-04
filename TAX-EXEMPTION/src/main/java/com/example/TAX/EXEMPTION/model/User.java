@@ -29,16 +29,20 @@ public class User {
     private String phoneNumber;
     private String employeeId;
 
-   @ManyToOne
+   @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "roleId")
     private  Role role;
 
 
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "genderId")
     private Gender gender;
 
+    @ManyToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "ApplicationId")
+    private Application application;
 
-
+    public User() {
+    }
 }

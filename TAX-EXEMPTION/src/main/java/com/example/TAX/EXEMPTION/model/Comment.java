@@ -11,16 +11,16 @@ import java.util.Date;
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long CommentId;
-    private Date CommentDate;
-    private String Text;
+    private Long commentId;
+    private Date commentDate;
+    private String text;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "UserId")
     private User user;
 
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "ApplicationId")
     private Application application;
 }

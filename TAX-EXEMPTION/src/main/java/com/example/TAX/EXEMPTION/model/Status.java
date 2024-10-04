@@ -17,6 +17,9 @@ public class Status {
         StatusId = statusId;
     }
 
-    private  String StatusName;
+    private  String statusName;
+
+    public Status() {
+    }
 
 }
