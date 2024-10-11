@@ -1,5 +1,6 @@
 package com.example.TAX.EXEMPTION.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -12,7 +13,7 @@ public class Status {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long StatusId;
 
-
+    @JsonIgnore
     @OneToMany(mappedBy = "status", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Application>applications;
 

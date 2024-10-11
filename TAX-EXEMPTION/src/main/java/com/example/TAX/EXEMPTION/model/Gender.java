@@ -1,5 +1,6 @@
 package com.example.TAX.EXEMPTION.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -13,7 +14,7 @@ public class Gender {
     private Long genderId;
     public  String genderType;
 
-    // Bidirectional relationship to User
+    @JsonIgnore // Bidirectional relationship to User
     @OneToMany(mappedBy = "gender", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<User> users;
 }

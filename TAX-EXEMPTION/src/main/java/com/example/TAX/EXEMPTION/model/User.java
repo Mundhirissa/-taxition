@@ -1,5 +1,6 @@
 package com.example.TAX.EXEMPTION.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -32,7 +33,8 @@ public class User {
     private String employeeId;
 
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
     private List<Application>applications;
 
 
@@ -46,11 +48,13 @@ public class User {
     @JoinColumn(name = "genderId")
     private Gender gender;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
-    @JoinColumn(name = "ApplicationId")
-    private Application application;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @ManyToOne(cascade = CascadeType.MERGE,fetch = FetchType.EAGER)
+//    @JoinColumn(name = "ApplicationId")
+//    private Application application;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
     private List<Comment>comments;
 
 

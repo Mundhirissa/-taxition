@@ -1,6 +1,7 @@
 package com.example.TAX.EXEMPTION.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -28,7 +29,7 @@ public class Application {
     private  Status status;
 
 
-
+    @JsonIgnore
     @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment>comments;
 

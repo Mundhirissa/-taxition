@@ -8,6 +8,8 @@ import com.example.TAX.EXEMPTION.repo.ApplicationRepo;
 import com.example.TAX.EXEMPTION.repo.AssuranceRepo;
 import com.example.TAX.EXEMPTION.repo.StatusRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -87,40 +89,55 @@ private StatusRepo statusRepo;
     }
 
     // Update (PUT)
-    @PutMapping("/{assuranceId}")
+    // Update (PUT)
+    // Update (PUT)
+    @PutMapping("/{id}")
     public ResponseEntity<Assurance> updateAssurance(
-            @PathVariable("assuranceId") Long assuranceId,
+            @PathVariable("id") Long assuranceId,
             @RequestParam("recommendation") String recommendation,
-            @RequestParam(value = "file", required = false) MultipartFile file,
-            @RequestParam("applicationId") Long ApplicationId) throws IOException {
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("applicationId") Long applicationId) throws IOException {
 
-        // Find existing assurance
-        Optional<Assurance> optionalAssurance = assuranceRepository.findById(assuranceId);
-        if (!optionalAssurance.isPresent()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        // Find the existing assurance by ID
+        Optional<Assurance> existingAssuranceOptional = assuranceRepository.findById(assuranceId);
+        if (!existingAssuranceOptional.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Assurance not found
+        }
+        Assurance existingAssurance = existingAssuranceOptional.get();
+
+        // Update the assurance details
+        existingAssurance.setRecommendation(recommendation);
+
+        // Update the assurance file if a new one is provided
+        if (file != null && !file.isEmpty()) {
+            String newFileName = saveFile(file); // Save the new file
+            existingAssurance.setAssuranceFile(newFileName);
         }
 
-        Assurance assurance = optionalAssurance.get();
-        assurance.setRecommendation(recommendation);
+        // Find and update the application if needed
+        Optional<Application> applicationOptional = applicationRepository.findById(applicationId);
+        if (applicationOptional.isPresent()) {
+            Application application = applicationOptional.get();
+            existingAssurance.setApplication(application);
 
-        // Update the file if provided
-        if (file != null) {
-            String fileName = saveFile(file);
-            assurance.setAssuranceFile(fileName);
-        }
-
-        // Set application if exists
-        Optional<Application> application = applicationRepository.findById(ApplicationId);
-        if (application.isPresent()) {
-            assurance.setApplication(application.get());
+            // Update the application status to 'Done' if necessary
+            Optional<Status> statusOptional = Optional.ofNullable(statusRepo.findByStatusName("Done"));
+            if (statusOptional.isPresent()) {
+                Status doneStatus = statusOptional.get();
+                application.setStatus(doneStatus);
+                applicationRepository.save(application);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Status "Done" not found
+            }
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Application not found
         }
 
-        // Save updated assurance
-        Assurance updatedAssurance = assuranceRepository.save(assurance);
-        return ResponseEntity.ok(updatedAssurance);
+        // Save the updated assurance
+        Assurance updatedAssurance = assuranceRepository.save(existingAssurance);
+        return new ResponseEntity<>(updatedAssurance, HttpStatus.OK);
     }
+
 
     // Delete (DELETE)
     @DeleteMapping("/{assuranceId}")
@@ -141,4 +158,30 @@ private StatusRepo statusRepo;
         file.transferTo(dest);
         return fileName;
     }
+
+
+    // Method to download assurance file by assuranceId
+    @GetMapping("/download/{assuranceId}")
+    public ResponseEntity<Resource> downloadAssuranceFile(@PathVariable Long assuranceId) {
+        // Fetch the Assurance object from the repository
+        Optional<Assurance> assuranceOptional = assuranceRepository.findById(assuranceId);
+        if (assuranceOptional.isPresent()) {
+            Assurance assurance = assuranceOptional.get();
+            String fileName = assurance.getAssuranceFile();
+            // Construct the full file path using the FILE_DIRECTORY
+            File file = new File(FILE_DIRECTORY + fileName);
+            if (file.exists()) {
+                Resource resource = new FileSystemResource(file);
+                return ResponseEntity.ok()
+                        .header("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"")
+                        .body(resource);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND); // File not found
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Assurance not found
+        }
+    }
+
+
 }
