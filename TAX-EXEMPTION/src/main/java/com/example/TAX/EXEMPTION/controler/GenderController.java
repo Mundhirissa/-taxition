@@ -2,6 +2,7 @@ package com.example.TAX.EXEMPTION.controler;
 
 import com.example.TAX.EXEMPTION.model.Gender;
 import com.example.TAX.EXEMPTION.repo.GenderRepo;
+import com.example.TAX.EXEMPTION.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,8 @@ public class GenderController {
 
     @Autowired
     private GenderRepo genderRepo;
+    @Autowired
+    private UserRepo userRepo;
     // CREATE a new gender
     @PostMapping
     public ResponseEntity<Gender> createGender(@RequestBody Gender gender) {
@@ -51,11 +54,14 @@ public class GenderController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // DELETE a gender
-    @DeleteMapping("/{GenderId}")
-    public ResponseEntity<Void> deleteGender(@PathVariable Long GenderId) {
-        if (genderRepo.existsById(GenderId)) {
-            genderRepo.deleteById(GenderId);
+    @DeleteMapping("/{genderId}")
+    public ResponseEntity<Void> deleteGender(@PathVariable Long genderId) {
+        if (genderRepo.existsById(genderId)) {
+            // Update associated User entities to set their gender field to null
+            userRepo.updateUsersWithNullGender(genderRepo.findById(genderId).orElseThrow().getGenderId());
+
+            // Delete the Gender entity
+            genderRepo.deleteById(genderId);
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.notFound().build();

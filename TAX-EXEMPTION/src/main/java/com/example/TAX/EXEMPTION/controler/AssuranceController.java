@@ -88,8 +88,7 @@ private StatusRepo statusRepo;
         return ResponseEntity.ok(assurances);
     }
 
-    // Update (PUT)
-    // Update (PUT)
+
     // Update (PUT)
     @PutMapping("/{id}")
     public ResponseEntity<Assurance> updateAssurance(

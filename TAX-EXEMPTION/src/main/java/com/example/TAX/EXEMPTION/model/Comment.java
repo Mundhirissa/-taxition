@@ -15,12 +15,25 @@ public class Comment {
     private Date commentDate;
     private String text;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+
+
+    @ManyToOne
     @JoinColumn(name = "UserId")
     private User user;
 
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne
     @JoinColumn(name = "ApplicationId")
     private Application application;
+
+    @Override
+    public String toString() {
+        return "Comment{" +
+                "commentId=" + commentId +
+                ", commentDate=" + commentDate +
+                ", text='" + text + '\'' +
+                '}';
+    }
+
+
 }

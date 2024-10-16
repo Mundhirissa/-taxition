@@ -3,6 +3,8 @@ package com.example.TAX.EXEMPTION.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.List;
 
@@ -38,20 +40,18 @@ public class User {
     private List<Application>applications;
 
 
-   @ManyToOne(cascade = CascadeType.MERGE)
-    @JoinColumn(name = "roleId")
+   @ManyToOne
+    @JoinColumn(name = "roleId",nullable = true)
     private  Role role;
 
 
 
-    @ManyToOne(cascade = CascadeType.MERGE)
-    @JoinColumn(name = "genderId")
+    @ManyToOne
+    @JoinColumn(name = "gender_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private Gender gender;
 
 
-//    @ManyToOne(cascade = CascadeType.MERGE,fetch = FetchType.EAGER)
-//    @JoinColumn(name = "ApplicationId")
-//    private Application application;
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
@@ -60,4 +60,18 @@ public class User {
 
     public User() {
     }
+
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId=" + userId +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                // Avoid including role and gender to prevent recursion
+                '}';
+    }
+
+
 }

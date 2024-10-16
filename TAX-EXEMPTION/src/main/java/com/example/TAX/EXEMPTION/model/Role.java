@@ -15,8 +15,18 @@ public class Role {
     private String roleName;
 
     @JsonIgnore // Bidirectional relationship to User
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "role", cascade = CascadeType.PERSIST)
     private List<User> users;
+
+
+    @Override
+    public String toString() {
+        return "Role{" +
+                "roleId=" + roleId +
+                ", roleName='" + roleName + '\'' +
+                '}';
+    }
+
 
 
 

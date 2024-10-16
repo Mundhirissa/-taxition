@@ -15,6 +15,14 @@ public class Gender {
     public  String genderType;
 
     @JsonIgnore // Bidirectional relationship to User
-    @OneToMany(mappedBy = "gender", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "gender", cascade = CascadeType.PERSIST)
     private List<User> users;
+
+    @Override
+    public String toString() {
+        return "Gender{" +
+                "genderId=" + genderId +
+                ", genderType='" + genderType + '\'' +
+                '}';
+    }
 }

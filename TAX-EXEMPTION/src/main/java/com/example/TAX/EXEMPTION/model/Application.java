@@ -19,12 +19,12 @@ public class Application {
     private String doc2;
     private String image;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne
     @JoinColumn(name = "UserId")
     private User user;
 
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne
     @JoinColumn(name = "StatusId")
     private  Status status;
 
@@ -34,6 +34,20 @@ public class Application {
     private List<Comment>comments;
 
 
+    // One application has one assurance
+    @OneToOne(mappedBy = "application", cascade = CascadeType.ALL) // Maps to the assurance field in Assurance
+    private Assurance assurance;
 
 
+
+    @Override
+    public String toString() {
+        return "Application{" +
+                "ApplicationId=" + ApplicationId +
+                ", SubmissionDate=" + SubmissionDate +
+                ", doc1='" + doc1 + '\'' +
+                ", doc2='" + doc2 + '\'' +
+                ", image='" + image + '\'' +
+                '}';
+    }
 }

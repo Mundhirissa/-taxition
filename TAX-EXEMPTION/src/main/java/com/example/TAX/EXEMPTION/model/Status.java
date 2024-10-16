@@ -27,4 +27,11 @@ public class Status {
     public Status() {
     }
 
+    @Override
+    public String toString() {
+        return "Status{" +
+                "StatusId=" + StatusId +
+                ", statusName='" + statusName + '\'' +
+                '}';
+    }
 }
