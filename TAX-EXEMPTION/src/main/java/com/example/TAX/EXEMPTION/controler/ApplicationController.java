@@ -1,10 +1,7 @@
 package com.example.TAX.EXEMPTION.controler;
 
-import com.example.TAX.EXEMPTION.model.Application;
-import com.example.TAX.EXEMPTION.model.Status;
-import com.example.TAX.EXEMPTION.model.User;
-import com.example.TAX.EXEMPTION.repo.ApplicationRepo;
-import com.example.TAX.EXEMPTION.repo.StatusRepo;
+import com.example.TAX.EXEMPTION.model.*;
+import com.example.TAX.EXEMPTION.repo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
@@ -33,7 +30,13 @@ import java.util.Optional;
 @RequestMapping("/api/application")
 public class ApplicationController {
     @Autowired
+    private CommentRepo commentRepository;
+    @Autowired
+    private AssuranceRepo assuranceRepository;
+    @Autowired
     private ApplicationRepo applicationRepo;
+    @Autowired
+    private UserRepo userRepo;
 
     @Autowired
     private StatusRepo statusRepo;
@@ -122,11 +125,76 @@ public class ApplicationController {
     }
 
 
-    @DeleteMapping("/{ApplicationId}")
-    public ResponseEntity<Void> deleteApplication(@PathVariable Long ApplicationId) {
-        applicationRepo.deleteById(ApplicationId);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/delete/{ApplicationId}")
+    public ResponseEntity<String> deleteApplication(@PathVariable Long ApplicationId) {
+        // Step 1: Fetch the Application by its ID
+        Optional<Application> applicationOptional = applicationRepo.findById(ApplicationId);
+
+        if (applicationOptional.isPresent()) {
+            Application application = applicationOptional.get();
+
+            // Step 2: Delete associated files
+            try {
+                deleteApplicationFiles(application);  // Method that deletes associated files (e.g., docs, images)
+            } catch (IOException e) {
+                return ResponseEntity.status(500).body("Error deleting associated files: " + e.getMessage());
+            }
+
+            // Step 3: Delete associated comments
+            if (application.getComments() != null && !application.getComments().isEmpty()) {
+                for (Comment comment : application.getComments()) {
+                    commentRepository.delete(comment);  // Explicitly delete each comment
+                }
+            }
+
+            // Step 4: Delete associated assurance (if any)
+            if (application.getAssurance() != null) {
+                // Unlink the assurance from the application
+                Assurance assurance = application.getAssurance();
+                assurance.setApplication(null);  // Set the application reference to null
+                assuranceRepository.save(assurance);  // Save the updated assurance entity
+                assuranceRepository.delete(assurance);  // Delete the assurance
+            }
+
+            // Step 5: Unlink the Application from the User (if necessary)
+            if (application.getUser() != null) {
+                User user = application.getUser();
+                user.getApplications().remove(application);  // Remove the application from the user's application list
+                userRepo.save(user);  // Save the user
+            }
+
+            // Step 6: Unlink the Application from Status (if necessary)
+            if (application.getStatus() != null) {
+                Status status = application.getStatus();
+                status.getApplications().remove(application);  // Remove the application from the status
+                statusRepo.save(status);  // Save the status
+            }
+
+            // Step 7: Delete the Application itself
+            applicationRepo.deleteById(ApplicationId);
+
+            return ResponseEntity.ok("Application and its associated data (comments, assurance, and files) deleted successfully.");
+        } else {
+            return ResponseEntity.status(404).body("Application not found.");
+        }
     }
+
+
+
+    // Helper method to delete the application files
+    private void deleteApplicationFiles(Application application) throws IOException {
+        // Example for deleting documents and images
+        if (application.getDoc1() != null) {
+            Files.deleteIfExists(Paths.get(UPLOAD_DIR + application.getDoc1()));
+        }
+        if (application.getDoc2() != null) {
+            Files.deleteIfExists(Paths.get(UPLOAD_DIR + application.getDoc2()));
+        }
+        if (application.getImage() != null) {
+            Files.deleteIfExists(Paths.get(UPLOAD_DIR + application.getImage()));
+        }
+    }
+
 
 
     // Method to download a single file (doc1, doc2, or image) by applicationId and file type

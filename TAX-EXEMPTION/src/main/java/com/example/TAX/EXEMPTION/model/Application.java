@@ -33,9 +33,8 @@ public class Application {
     @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment>comments;
 
-
-    // One application has one assurance
-    @OneToOne(mappedBy = "application", cascade = CascadeType.ALL) // Maps to the assurance field in Assurance
+    @JsonIgnore
+    @OneToOne(mappedBy = "application", cascade = CascadeType.ALL,orphanRemoval = true) // Maps to the assurance field in Assurance
     private Assurance assurance;
 
 

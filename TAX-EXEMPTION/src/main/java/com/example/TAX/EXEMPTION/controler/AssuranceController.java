@@ -7,6 +7,7 @@ import com.example.TAX.EXEMPTION.model.Status;
 import com.example.TAX.EXEMPTION.repo.ApplicationRepo;
 import com.example.TAX.EXEMPTION.repo.AssuranceRepo;
 import com.example.TAX.EXEMPTION.repo.StatusRepo;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -17,6 +18,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -137,18 +141,52 @@ private StatusRepo statusRepo;
         return new ResponseEntity<>(updatedAssurance, HttpStatus.OK);
     }
 
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteAssurance(@PathVariable Long id) {
+        // Step 1: Fetch the Assurance record by its ID
+        Optional<Assurance> assuranceOptional = assuranceRepository.findById(id);
 
-    // Delete (DELETE)
-    @DeleteMapping("/{assuranceId}")
-    public ResponseEntity<Void> deleteAssurance(@PathVariable("assuranceId") Long assuranceId) {
-        Optional<Assurance> assurance = assuranceRepository.findById(assuranceId);
-        if (assurance.isPresent()) {
-            assuranceRepository.deleteById(assuranceId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        if (assuranceOptional.isPresent()) {
+            Assurance assurance = assuranceOptional.get();
+
+            // Step 2: Delete the assurance file
+            String filePath = FILE_DIRECTORY + assurance.getAssuranceFile();
+            try {
+                File file = new File(filePath);
+                if (file.exists()) {
+                    Files.delete(Paths.get(filePath));  // Delete the file
+                    System.out.println("File deleted successfully: " + filePath);
+                } else {
+                    System.out.println("File not found: " + filePath);
+                }
+            } catch (Exception e) {
+                System.err.println("Error deleting file: " + e.getMessage());
+                return ResponseEntity.status(500).body("Error deleting file.");
+            }
+
+            // Step 3: Unlink Assurance from Application
+            Application application = assurance.getApplication();
+            if (application != null) {
+                application.setAssurance(null);  // Unlink the assurance from the application
+                applicationRepository.save(application);  // Save changes to the application
+            }
+
+            // Step 4: Delete the Assurance record from the database
+            try {
+                assuranceRepository.deleteById(id);  // Delete the Assurance record
+                System.out.println("Assurance record deleted from database: " + id);
+                return ResponseEntity.ok("Assurance and file deleted successfully.");
+            } catch (Exception e) {
+                System.err.println("Error deleting Assurance record from database: " + e.getMessage());
+                return ResponseEntity.status(500).body("Error deleting Assurance record.");
+            }
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            System.out.println("Assurance not found with ID: " + id);
+            return ResponseEntity.status(404).body("Assurance not found.");
         }
     }
+
+
 
     // Helper method to save file
     private String saveFile(MultipartFile file) throws IOException {
