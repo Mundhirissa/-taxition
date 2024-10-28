@@ -14,7 +14,7 @@ public class Status {
     private Long StatusId;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "status", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "status", cascade = CascadeType.MERGE, orphanRemoval = true)
     private List<Application>applications;
 
 

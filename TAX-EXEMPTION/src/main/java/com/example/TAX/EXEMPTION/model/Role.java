@@ -15,7 +15,7 @@ public class Role {
     private String roleName;
 
     @JsonIgnore // Bidirectional relationship to User
-    @OneToMany(mappedBy = "role", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "role", cascade = CascadeType.MERGE,orphanRemoval = true)
     private List<User> users;
 
 

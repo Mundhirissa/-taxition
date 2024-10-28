@@ -2,6 +2,8 @@ package com.example.TAX.EXEMPTION.controler;
 
 import com.example.TAX.EXEMPTION.model.*;
 import com.example.TAX.EXEMPTION.repo.*;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
@@ -123,60 +125,57 @@ public class ApplicationController {
         }
         return ResponseEntity.notFound().build();
     }
-
-
     @DeleteMapping("/delete/{ApplicationId}")
+    @Transactional
     public ResponseEntity<String> deleteApplication(@PathVariable Long ApplicationId) {
-        // Step 1: Fetch the Application by its ID
-        Optional<Application> applicationOptional = applicationRepo.findById(ApplicationId);
+        // Fetch the Application by its ID
+        Application application = applicationRepo.findById(ApplicationId)
+                .orElseThrow(() -> new EntityNotFoundException("Application not found"));
 
-        if (applicationOptional.isPresent()) {
-            Application application = applicationOptional.get();
-
-            // Step 2: Delete associated files
-            try {
-                deleteApplicationFiles(application);  // Method that deletes associated files (e.g., docs, images)
-            } catch (IOException e) {
-                return ResponseEntity.status(500).body("Error deleting associated files: " + e.getMessage());
-            }
-
-            // Step 3: Delete associated comments
-            if (application.getComments() != null && !application.getComments().isEmpty()) {
-                for (Comment comment : application.getComments()) {
-                    commentRepository.delete(comment);  // Explicitly delete each comment
-                }
-            }
-
-            // Step 4: Delete associated assurance (if any)
-            if (application.getAssurance() != null) {
-                // Unlink the assurance from the application
-                Assurance assurance = application.getAssurance();
-                assurance.setApplication(null);  // Set the application reference to null
-                assuranceRepository.save(assurance);  // Save the updated assurance entity
-                assuranceRepository.delete(assurance);  // Delete the assurance
-            }
-
-            // Step 5: Unlink the Application from the User (if necessary)
-            if (application.getUser() != null) {
-                User user = application.getUser();
-                user.getApplications().remove(application);  // Remove the application from the user's application list
-                userRepo.save(user);  // Save the user
-            }
-
-            // Step 6: Unlink the Application from Status (if necessary)
-            if (application.getStatus() != null) {
-                Status status = application.getStatus();
-                status.getApplications().remove(application);  // Remove the application from the status
-                statusRepo.save(status);  // Save the status
-            }
-
-            // Step 7: Delete the Application itself
-            applicationRepo.deleteById(ApplicationId);
-
-            return ResponseEntity.ok("Application and its associated data (comments, assurance, and files) deleted successfully.");
-        } else {
-            return ResponseEntity.status(404).body("Application not found.");
+        // Delete associated files (ensure it's successful before proceeding)
+        try {
+            deleteApplicationFiles(application);
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("Error deleting associated files: " + e.getMessage());
         }
+
+        // First, explicitly delete comments associated with the application
+        List<Comment> comments = application.getComments();
+        if (comments != null && !comments.isEmpty()) {
+            for (Comment comment : comments) {
+                comment.setApplication(null);  // Unlink the comment from the application
+                commentRepository.delete(comment);  // Explicitly delete the comment
+            }
+            application.getComments().clear();  // Ensure the collection is cleared
+        }
+
+        // Delete associated assurance (if any) before proceeding with the Application deletion
+        Assurance assurance = application.getAssurance();
+        if (assurance != null) {
+            assurance.setApplication(null);  // Unlink assurance from the application
+            assuranceRepository.delete(assurance);  // Explicitly delete the assurance
+        }
+
+        // Unlink the Application from the User
+        User user = application.getUser();
+        if (user != null) {
+            user.getApplications().remove(application);  // Remove the application from the user's list
+            application.setUser(null);  // Unlink the user from the application
+            userRepo.save(user);  // Save the updated user
+        }
+
+        // Unlink the Application from Status
+        Status status = application.getStatus();
+        if (status != null) {
+            status.getApplications().remove(application);  // Remove the application from the status
+            application.setStatus(null);  // Unlink the status from the application
+            statusRepo.save(status);  // Save the updated status
+        }
+
+        // Finally, delete the Application itself
+        applicationRepo.delete(application);  // This should now delete the application
+
+        return ResponseEntity.ok("Application and its associated data deleted successfully.");
     }
 
 

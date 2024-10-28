@@ -3,6 +3,8 @@ package com.example.TAX.EXEMPTION.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Date;
 
@@ -19,6 +21,7 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "UserId")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
 

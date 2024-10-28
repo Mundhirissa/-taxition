@@ -41,7 +41,8 @@ public class User {
 
 
    @ManyToOne
-    @JoinColumn(name = "roleId",nullable = true)
+    @JoinColumn(name = "roleId")
+   @OnDelete(action = OnDeleteAction.CASCADE)
     private  Role role;
 
 
@@ -54,7 +55,7 @@ public class User {
 
 
     @JsonIgnore
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
     private List<Comment>comments;
 
 

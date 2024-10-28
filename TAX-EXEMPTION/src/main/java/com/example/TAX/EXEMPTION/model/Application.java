@@ -4,6 +4,8 @@ package com.example.TAX.EXEMPTION.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Date;
 import java.util.List;
@@ -26,6 +28,7 @@ public class Application {
 
     @ManyToOne
     @JoinColumn(name = "StatusId")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private  Status status;
 
 
